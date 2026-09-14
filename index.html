@@ -1,4 +1,4 @@
-html_content = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
@@ -49,17 +49,14 @@ html_content = """<!DOCTYPE html>
         }
         .step {
             margin-bottom: 25px;
-            padding-bottom: 20px;
-            border-bottom: 1px dashed var(--border-color);
-        }
-        .step:last-child {
-            border-bottom: none;
+            text-align: center;
         }
         label {
             display: block;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             font-weight: bold;
             color: #aaa;
+            font-size: 16px;
         }
         input[type="file"] {
             display: none;
@@ -68,20 +65,28 @@ html_content = """<!DOCTYPE html>
             display: inline-block;
             background-color: #333;
             color: white;
-            padding: 10px 20px;
+            padding: 12px 30px;
             border-radius: 5px;
             cursor: pointer;
             transition: background 0.2s;
             border: 1px solid #555;
-            font-size: 14px;
+            font-size: 16px;
+            font-weight: bold;
         }
         .file-upload-btn:hover {
             background-color: #444;
         }
         .file-name {
-            margin-left: 10px;
-            font-size: 13px;
+            display: block;
+            margin-top: 10px;
+            font-size: 14px;
             color: #4caf50;
+        }
+        .status-msg {
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 10px;
         }
         .canvas-container {
             display: flex;
@@ -105,7 +110,7 @@ html_content = """<!DOCTYPE html>
             background-color: var(--accent-color);
             color: white;
             text-align: center;
-            padding: 12px;
+            padding: 14px;
             border: none;
             border-radius: 5px;
             font-size: 16px;
@@ -129,24 +134,17 @@ html_content = """<!DOCTYPE html>
 
 <div class="container">
     <h1>TFR 事件圖片生成器</h1>
-    <p class="subtitle">完全在瀏覽器內運行，手機電腦皆可用</p>
+    <p class="subtitle">自動套用遮罩與色差特效</p>
+
+    <div class="status-msg" id="overlayStatus">正在檢查系統遮罩...</div>
 
     <div class="step">
-        <label>步驟 1：載入模板遮罩 (event_pic_overlay.png)</label>
-        <label class="file-upload-btn">
-            選擇遮罩圖片
-            <input type="file" id="overlayInput" accept="image/png">
-        </label>
-        <span class="file-name" id="overlayName">未選擇 (必須是透明背景的 PNG)</span>
-    </div>
-
-    <div class="step">
-        <label>步驟 2：上傳你要製作的事件原圖</label>
-        <label class="file-upload-btn">
+        <label>上傳你要製作的事件原圖</label>
+        <label class="file-upload-btn" id="uploadBtnLabel" style="opacity: 0.5; pointer-events: none;">
             選擇原圖
-            <input type="file" id="imageInput" accept="image/*">
+            <input type="file" id="imageInput" accept="image/*" disabled>
         </label>
-        <span class="file-name" id="imageName">未選擇</span>
+        <span class="file-name" id="imageName">等待上傳...</span>
     </div>
 
     <div class="canvas-container">
@@ -157,18 +155,38 @@ html_content = """<!DOCTYPE html>
 </div>
 
 <script>
-    const overlayInput = document.getElementById('overlayInput');
     const imageInput = document.getElementById('imageInput');
-    const overlayName = document.getElementById('overlayName');
     const imageName = document.getElementById('imageName');
     const resultCanvas = document.getElementById('resultCanvas');
     const ctx = resultCanvas.getContext('2d', { willReadFrequently: true });
     const downloadBtn = document.getElementById('downloadBtn');
+    const overlayStatus = document.getElementById('overlayStatus');
+    const uploadBtnLabel = document.getElementById('uploadBtnLabel');
 
     let overlayImg = new Image();
     let sourceImg = new Image();
     let overlayLoaded = false;
     let sourceLoaded = false;
+
+    // 自動載入同資料夾底下的 event_pic_overlay.png
+    overlayImg.src = 'event_pic_overlay.png';
+    
+    overlayImg.onload = function() {
+        overlayLoaded = true;
+        overlayStatus.style.color = '#4caf50';
+        overlayStatus.textContent = '✅ 系統遮罩載入成功！可以開始上傳圖片了。';
+        // 開放按鈕
+        imageInput.disabled = false;
+        uploadBtnLabel.style.opacity = '1';
+        uploadBtnLabel.style.pointerEvents = 'auto';
+        
+        if (sourceLoaded) processImage();
+    };
+
+    overlayImg.onerror = function() {
+        overlayStatus.style.color = '#f44336';
+        overlayStatus.textContent = '❌ 錯誤：找不到 event_pic_overlay.png，請確認檔案已上傳至同一目錄。';
+    };
 
     // 讀取圖片檔案為 Data URL
     function readImage(file, imgObj, callback) {
@@ -179,16 +197,6 @@ html_content = """<!DOCTYPE html>
         }
         reader.readAsDataURL(file);
     }
-
-    overlayInput.addEventListener('change', function(e) {
-        if (e.target.files.length > 0) {
-            overlayName.textContent = "已載入：" + e.target.files[0].name;
-            readImage(e.target.files[0], overlayImg, () => {
-                overlayLoaded = true;
-                processImage();
-            });
-        }
-    });
 
     imageInput.addEventListener('change', function(e) {
         if (e.target.files.length > 0) {
@@ -210,7 +218,7 @@ html_content = """<!DOCTYPE html>
         resultCanvas.width = targetW;
         resultCanvas.height = targetH;
 
-        // 2. 縮放並置中裁切原圖 (等同於 ImageOps.fit)
+        // 2. 縮放並置中裁切原圖
         const scale = Math.max(targetW / sourceImg.width, targetH / sourceImg.height);
         const w = sourceImg.width * scale;
         const h = sourceImg.height * scale;
@@ -223,7 +231,6 @@ html_content = """<!DOCTYPE html>
         // 3. 處理色差 (Glitch) 效果
         const imgData = ctx.getImageData(0, 0, targetW, targetH);
         const data = imgData.data;
-        // 建立新的像素陣列，預設全黑透明
         const outData = new Uint8ClampedArray(data.length); 
         
         const offsetX = 3;
@@ -278,9 +285,3 @@ html_content = """<!DOCTYPE html>
 </script>
 </body>
 </html>
-"""
-
-with open("tfr_event_generator.html", "w", encoding="utf-8") as f:
-    f.write(html_content)
-
-print("Generated HTML file successfully.")
