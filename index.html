@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TFR 烈焰升騰 - 事件圖片生成器</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --container-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --accent-color: #d32f2f;
+            --accent-hover: #f44336;
+            --border-color: #333;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            background-color: var(--container-bg);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            max-width: 600px;
+            width: 100%;
+            border: 1px solid var(--border-color);
+        }
+        h1 {
+            text-align: center;
+            color: white;
+            font-size: 24px;
+            margin-top: 0;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        p.subtitle {
+            text-align: center;
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        .step {
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        label {
+            display: block;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #aaa;
+            font-size: 16px;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .file-upload-btn {
+            display: inline-block;
+            background-color: #333;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: 1px solid #555;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .file-upload-btn:hover {
+            background-color: #444;
+        }
+        .file-name {
+            display: block;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #4caf50;
+        }
+        .status-msg {
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+        .canvas-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            background: #000;
+            border: 1px solid var(--border-color);
+            min-height: 200px;
+            align-items: center;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        canvas {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+        .download-btn {
+            display: block;
+            width: 100%;
+            background-color: var(--accent-color);
+            color: white;
+            text-align: center;
+            padding: 14px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.2s;
+            text-decoration: none;
+        }
+        .download-btn:hover {
+            background-color: var(--accent-hover);
+        }
+        .download-btn:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>TFR 事件圖片生成器</h1>
+    <p class="subtitle">自動套用遮罩與色差特效</p>
+
+    <div class="status-msg" id="overlayStatus">正在檢查系統遮罩...</div>
+
+    <div class="step">
+        <label>上傳你要製作的事件原圖</label>
+        <label class="file-upload-btn" id="uploadBtnLabel" style="opacity: 0.5; pointer-events: none;">
+            選擇原圖
+            <input type="file" id="imageInput" accept="image/*" disabled>
+        </label>
+        <span class="file-name" id="imageName">等待上傳...</span>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="resultCanvas"></canvas>
+    </div>
+
+    <button id="downloadBtn" class="download-btn" disabled>下載事件圖片</button>
+</div>
+
+<script>
+    const imageInput = document.getElementById('imageInput');
+    const imageName = document.getElementById('imageName');
+    const resultCanvas = document.getElementById('resultCanvas');
+    const ctx = resultCanvas.getContext('2d', { willReadFrequently: true });
+    const downloadBtn = document.getElementById('downloadBtn');
+    const overlayStatus = document.getElementById('overlayStatus');
+    const uploadBtnLabel = document.getElementById('uploadBtnLabel');
+
+    let overlayImg = new Image();
+    let sourceImg = new Image();
+    let overlayLoaded = false;
+    let sourceLoaded = false;
+
+    // 自動載入同資料夾底下的 event_pic_overlay.png
+    overlayImg.src = 'event_pic_overlay.png';
+    
+    overlayImg.onload = function() {
+        overlayLoaded = true;
+        overlayStatus.style.color = '#4caf50';
+        overlayStatus.textContent = '✅ 系統遮罩載入成功！可以開始上傳圖片了。';
+        // 開放按鈕
+        imageInput.disabled = false;
+        uploadBtnLabel.style.opacity = '1';
+        uploadBtnLabel.style.pointerEvents = 'auto';
+        
+        if (sourceLoaded) processImage();
+    };
+
+    overlayImg.onerror = function() {
+        overlayStatus.style.color = '#f44336';
+        overlayStatus.textContent = '❌ 錯誤：找不到 event_pic_overlay.png，請確認檔案已上傳至同一目錄。';
+    };
+
+    // 讀取圖片檔案為 Data URL
+    function readImage(file, imgObj, callback) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            imgObj.onload = callback;
+            imgObj.src = e.target.result;
+        }
+        reader.readAsDataURL(file);
+    }
+
+    imageInput.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            imageName.textContent = "已載入：" + e.target.files[0].name;
+            readImage(e.target.files[0], sourceImg, () => {
+                sourceLoaded = true;
+                processImage();
+            });
+        }
+    });
+
+    function processImage() {
+        if (!overlayLoaded || !sourceLoaded) return;
+
+        const targetW = overlayImg.width;
+        const targetH = overlayImg.height;
+        
+        // 1. 設定畫布為遮罩大小
+        resultCanvas.width = targetW;
+        resultCanvas.height = targetH;
+
+        // 2. 縮放並置中裁切原圖
+        const scale = Math.max(targetW / sourceImg.width, targetH / sourceImg.height);
+        const w = sourceImg.width * scale;
+        const h = sourceImg.height * scale;
+        const x = (targetW - w) / 2;
+        const y = (targetH - h) / 2;
+        
+        ctx.clearRect(0, 0, targetW, targetH);
+        ctx.drawImage(sourceImg, x, y, w, h);
+
+        // 3. 處理色差 (Glitch) 效果
+        const imgData = ctx.getImageData(0, 0, targetW, targetH);
+        const data = imgData.data;
+        const outData = new Uint8ClampedArray(data.length); 
+        
+        const offsetX = 3;
+        const offsetY = 0;
+
+        for (let py = 0; py < targetH; py++) {
+            for (let px = 0; px < targetW; px++) {
+                let currentIdx = (py * targetW + px) * 4;
+                
+                // 保留 R 色頻
+                outData[currentIdx] = data[currentIdx];
+                
+                // 計算位移來源的座標
+                let srcX = px - offsetX;
+                let srcY = py - offsetY;
+                
+                if (srcX >= 0 && srcY >= 0) {
+                    let srcIdx = (srcY * targetW + srcX) * 4;
+                    outData[currentIdx + 1] = data[srcIdx + 1]; // G
+                    outData[currentIdx + 2] = data[srcIdx + 2]; // B
+                } else {
+                    outData[currentIdx + 1] = 0;
+                    outData[currentIdx + 2] = 0;
+                }
+                
+                // 保留原 Alpha 值
+                outData[currentIdx + 3] = data[currentIdx + 3];
+            }
+        }
+
+        const glitchedImageData = new ImageData(outData, targetW, targetH);
+        ctx.putImageData(glitchedImageData, 0, 0);
+
+        // 4. 套用遮罩
+        ctx.drawImage(overlayImg, 0, 0, targetW, targetH);
+
+        // 啟用下載按鈕
+        downloadBtn.disabled = false;
+    }
+
+    downloadBtn.addEventListener('click', function() {
+        if (!downloadBtn.disabled) {
+            const dataUrl = resultCanvas.toDataURL('image/jpeg', 0.95);
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = 'TFR_Event_' + Date.now() + '.jpg';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+    });
+</script>
+</body>
+</html>
