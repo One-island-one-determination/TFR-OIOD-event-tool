@@ -791,18 +791,42 @@
             downloadBtn.disabled = false;
         }
 
-        downloadBtn.addEventListener('click', function () {
-            if (!downloadBtn.disabled) {
-                // Hoi4 event pictures are saved as PNG
-                const dataUrl = resultCanvas.toDataURL('image/png');
-                const a = document.createElement('a');
-                a.href = dataUrl;
-                a.download = 'TFR_Event_' + Date.now() + '.png';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+                downloadBtn.addEventListener('click', async function() {
+            if (downloadBtn.disabled) return;
+
+            const dataUrl = resultCanvas.toDataURL('image/png');
+            const fileName = 'TFR_Event_' + Date.now() + '.png';
+
+            // 1. 嘗試使用手機原生的分享/儲存選單 (Web Share API)
+            if (navigator.share) {
+                try {
+                    // 將 Data URL 轉換成真實的檔案 (Blob) 才能給手機系統讀取
+                    const res = await fetch(dataUrl);
+                    const blob = await res.blob();
+                    const file = new File([blob], fileName, { type: 'image/png' });
+
+                    // 檢查設備是否支援檔案分享
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                            files: [file],
+                            title: 'TFR 事件圖片'
+                        });
+                        return; // 成功呼叫原生選單後，就結束執行
+                    }
+                } catch (err) {
+                    console.log('原生分享取消或失敗，改用傳統下載', err);
+                }
             }
+
+            // 2. 如果不支援原生選單（例如電腦瀏覽器），退回傳統下載方式
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         });
+
     </script>
 </body>
 
