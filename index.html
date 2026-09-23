@@ -372,6 +372,9 @@
 
             <input type="radio" id="modeLoading" name="imageMode" value="loading" class="mode-radio">
             <label for="modeLoading" class="mode-label">載入畫面 (Loading Screen)</label>
+
+            <input type="radio" id="modeBanner" name="imageMode" value="banner" class="mode-radio">
+            <label for="modeBanner" class="mode-label">橫幅 (Banner)</label>
         </div>
 
         <div class="status-msg" id="overlayStatus">正在檢查系統遮罩...</div>
@@ -473,10 +476,11 @@
         let overlayLoaded = false;
         let sourceLoaded = false;
 
-        // 定義兩種遮罩的路徑
+        // 定義遮罩的路徑
         const overlayPaths = {
             event: 'event_pic_overlay.png', // 確保原本的事件邊框圖檔在同資料夾
-            loading: 'overlay-loading.png'  // 新的 loading 遮罩圖檔
+            loading: 'overlay-loading.png', // 新的 loading 遮罩圖檔
+            banner: 'banner_template_overlay.png' // 橫幅遮罩圖檔
         };
 
         // Image transform state
