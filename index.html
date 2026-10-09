@@ -421,6 +421,14 @@
 
             <div class="control-group">
                 <div class="control-label-row">
+                    <span>風狀效果 (Wind)</span>
+                    <span class="control-val" id="windVal">0</span>
+                </div>
+                <input type="range" id="windSlider" min="0" max="60" value="0">
+            </div>
+
+            <div class="control-group">
+                <div class="control-label-row">
                     <span>水平位移 (X)</span>
                     <span class="control-val" id="panXVal">0px</span>
                 </div>
@@ -476,6 +484,8 @@
         const aberrationVal = document.getElementById('aberrationVal');
         const brightnessSlider = document.getElementById('brightnessSlider');
         const brightnessVal = document.getElementById('brightnessVal');
+        const windSlider = document.getElementById('windSlider');
+        const windVal = document.getElementById('windVal');
         const resetPositionBtn = document.getElementById('resetPositionBtn');
         const resetAllBtn = document.getElementById('resetAllBtn');
         const fitCoverBtn = document.getElementById('fitCoverBtn');
@@ -502,6 +512,7 @@
         let panY = 0;
         let aberrationOffset = 3;
         let currentBrightness = 100;
+        let windIntensity = 0;
 
         let isDragging = false;
         let dragStartX = 0;
@@ -675,6 +686,9 @@
 
             brightnessSlider.value = currentBrightness;
             brightnessVal.textContent = currentBrightness + '%';
+
+            windSlider.value = windIntensity;
+            windVal.textContent = windIntensity;
         }
 
         scaleSlider.addEventListener('input', function () {
@@ -708,6 +722,12 @@
             processImage();
         });
 
+        windSlider.addEventListener('input', function () {
+            windIntensity = parseInt(this.value, 10);
+            windVal.textContent = windIntensity;
+            processImage();
+        });
+
         resetPositionBtn.addEventListener('click', function () {
             panX = 0;
             panY = 0;
@@ -722,6 +742,7 @@
             panY = 0;
             aberrationOffset = 3;
             currentBrightness = 100;
+            windIntensity = 0;
             updateSliderRanges();
             syncControls();
             processImage();
@@ -834,6 +855,40 @@
             ctx.filter = `brightness(${currentBrightness}%)`;
             ctx.drawImage(sourceImg, x, y, w, h);
             ctx.filter = 'none';
+
+            // Wind effect pass (horizontal streaks from bright areas)
+            if (windIntensity > 0) {
+                // 1. Extract only bright pixels into a temp canvas
+                const srcData = ctx.getImageData(0, 0, targetW, targetH);
+                const brightCanvas = document.createElement('canvas');
+                brightCanvas.width = targetW;
+                brightCanvas.height = targetH;
+                const bCtx = brightCanvas.getContext('2d');
+                const brightData = bCtx.createImageData(targetW, targetH);
+                const src = srcData.data;
+                const dst = brightData.data;
+                const threshold = 100;
+                for (let i = 0; i < src.length; i += 4) {
+                    const lum = (src[i] * 0.299 + src[i+1] * 0.587 + src[i+2] * 0.114);
+                    if (lum > threshold) {
+                        const factor = (lum - threshold) / (255 - threshold); // 0..1 ramp
+                        dst[i]     = src[i];
+                        dst[i + 1] = src[i + 1];
+                        dst[i + 2] = src[i + 2];
+                        dst[i + 3] = Math.round(255 * factor);
+                    }
+                }
+                bCtx.putImageData(brightData, 0, 0);
+
+                // 2. Draw the bright-pixel canvas repeatedly with horizontal offsets
+                ctx.save();
+                ctx.globalCompositeOperation = 'screen';
+                for (let i = 1; i <= windIntensity; i++) {
+                    ctx.globalAlpha = 0.25 * Math.pow(1 - i / windIntensity, 1.5);
+                    ctx.drawImage(brightCanvas, i, 0);
+                }
+                ctx.restore();
+            }
 
             // Chromatic aberration pass
             if (aberrationOffset > 0) {
