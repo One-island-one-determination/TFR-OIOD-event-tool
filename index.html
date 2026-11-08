@@ -7,156 +7,254 @@
     <title>TFR 烈焰升騰 - 事件圖片生成器</title>
     <style>
         :root {
-            --bg-color: #0b0c10;
-            --container-bg: rgba(22, 24, 30, 0.88);
+            --bg-page: #0a0c10;
+            --surface-base: #11141b;
+            --surface-raised: #161a23;
+            --surface-overlay: #1d222f;
+            --surface-recessed: #0c0e14;
+
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-default: rgba(255, 255, 255, 0.12);
+            --border-strong: rgba(255, 255, 255, 0.22);
             --card-border: rgba(255, 255, 255, 0.08);
-            --text-primary: #f5f5f7;
-            --text-secondary: #9ba1a6;
-            --accent-primary: #e53935;
-            --accent-glow: rgba(229, 57, 53, 0.45);
-            --accent-hover: #ff5252;
-            --control-bg: #191c24;
-            --control-border: #2e3342;
-            --gold: #d4af37;
+
+            --text-primary: #f3f5f8;
+            --text-secondary: #9da4b4;
+            --text-muted: #646b7d;
+            --text-disabled: #424756;
+
+            --accent: #d32f2f;
+            --accent-hover: #ef4444;
+            --accent-light: #f87171;
+            --accent-subtle: rgba(211, 47, 47, 0.14);
+            --accent-border: rgba(211, 47, 47, 0.4);
+            --control-border: #282e3e;
+            --control-bg: #141720;
+
+            --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang TC", "Microsoft JhengHei", sans-serif;
+            --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
         }
 
-        * {
+        *,
+        *::before,
+        *::after {
             box-sizing: border-box;
         }
 
+        html,
         body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft JhengHei", sans-serif;
-            background: radial-gradient(circle at 50% 10%, #1f1113 0%, var(--bg-color) 70%);
-            color: var(--text-primary);
-            margin: 0;
-            padding: 30px 16px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            overflow-x: clip;
+            min-height: 100%;
         }
 
-        .container {
-            background: var(--container-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--card-border);
-            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7), 0 0 40px rgba(229, 57, 53, 0.1);
-            border-radius: 14px;
-            padding: 32px 36px;
-            max-width: 680px;
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-page);
+            background-image:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(211, 47, 47, 0.12), transparent),
+                linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, transparent 100%);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 24px 20px 40px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--accent-light);
+            outline-offset: 2px;
+        }
+
+        /* Top Application Shell */
+        .app-shell {
+            max-width: 1320px;
+            margin: 0 auto;
             width: 100%;
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 24px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-            padding-bottom: 18px;
+        header.app-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 16px 20px;
+            background: var(--surface-base);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
         }
 
-        h1 {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft JhengHei", sans-serif;
-            font-size: 26px;
-            font-weight: 700;
-            letter-spacing: 3px;
-            margin: 0 0 6px;
-            color: #fff;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+        .brand-block {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .brand-title-row {
             display: flex;
             align-items: center;
-            justify-content: center;
             gap: 10px;
         }
 
+        h1 {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin: 0;
+            color: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         h1 .badge {
-            font-size: 11px;
+            font-size: 10.5px;
+            font-weight: 700;
             letter-spacing: 1.5px;
-            padding: 2px 8px;
-            background: rgba(229, 57, 53, 0.2);
-            color: #ff6b6b;
-            border: 1px solid rgba(229, 57, 53, 0.4);
-            border-radius: 4px;
+            padding: 2px 7px;
+            background: var(--accent-subtle);
+            color: var(--accent-light);
+            border: 1px solid var(--accent-border);
+            border-radius: var(--radius-sm);
             text-transform: uppercase;
         }
 
         p.subtitle {
             color: var(--text-secondary);
-            font-size: 13.5px;
+            font-size: 12.5px;
             margin: 0;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
 
-        .status-msg {
-            text-align: center;
-            font-size: 12.5px;
-            margin-bottom: 18px;
-            padding: 7px 14px;
+        .header-actions {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        /* Segmented Mode Control */
+        .mode-selector {
+            display: inline-flex;
+            background: var(--surface-recessed);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-md);
+            padding: 3px;
+            gap: 2px;
+        }
+
+        .mode-radio {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .mode-label {
+            padding: 6px 14px;
+            background: transparent;
+            border: 1px solid transparent;
             border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        .mode-label:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .mode-radio:checked+.mode-label {
+            background: var(--surface-overlay);
+            border-color: var(--border-strong);
+            color: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+        }
+
+        /* Status pill */
+        .status-msg {
+            font-size: 12px;
+            font-weight: 500;
+            padding: 5px 12px;
+            border-radius: var(--radius-sm);
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--card-border);
             color: var(--text-secondary);
-            transition: all 0.3s ease;
+            transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        .upload-section {
+        /* Workbench 2-Column Grid */
+        .workbench-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 390px;
+            gap: 20px;
+            align-items: start;
+        }
+
+        @media (max-width: 1024px) {
+            .workbench-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Stage Column */
+        .stage-column {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            margin-bottom: 22px;
-        }
-
-        .dropzone {
-            width: 100%;
-            border: 2px dashed var(--control-border);
-            border-radius: 10px;
-            padding: 22px 16px;
-            text-align: center;
-            cursor: pointer;
-            transition: border-color 0.2s, background-color 0.2s;
-            background: rgba(0, 0, 0, 0.2);
-        }
-
-        .dropzone:hover,
-        .dropzone.dragover {
-            border-color: var(--accent-primary);
-            background: rgba(229, 57, 53, 0.05);
-        }
-
-        .dropzone-text {
-            font-weight: 500;
-            color: var(--text-primary);
-            font-size: 15px;
-            margin-bottom: 4px;
-        }
-
-        .dropzone-sub {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        input[type="file"] {
-            display: none;
+            gap: 14px;
+            min-width: 0;
         }
 
         .canvas-card {
-            background: #000;
-            border: 1px solid var(--card-border);
-            border-radius: 8px;
+            background: var(--surface-base);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
             overflow: hidden;
-            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8), 0 8px 24px rgba(0, 0, 0, 0.4);
-            margin-bottom: 18px;
-            position: relative;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .canvas-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+            background: var(--surface-raised);
+            border-bottom: 1px solid var(--border-subtle);
+            font-size: 11.5px;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
         }
 
         .canvas-inner {
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 12px;
-            background: radial-gradient(#1c1e24 0%, #0d0e12 100%);
-            touch-action: none;
+            padding: 24px 16px;
+            min-height: 380px;
+            background-color: var(--surface-recessed);
+            background-image:
+                radial-gradient(circle, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+            background-size: 20px 20px;
+            touch-action: pan-y;
+            overflow: hidden;
+            position: relative;
         }
 
         canvas {
@@ -164,43 +262,124 @@
             max-width: 100%;
             height: auto;
             border-radius: 4px;
+            border-radius: 0;
             cursor: default;
-            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08);
+            transition: box-shadow 0.15s ease;
         }
 
         canvas.draggable {
             cursor: grab;
+            touch-action: none;
         }
 
         canvas.dragging {
             cursor: grabbing;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.85), 0 0 0 1px var(--accent-light);
+        }
+
+        .stage-meta-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 14px;
+            background: var(--surface-base);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-md);
         }
 
         .hint-text {
-            font-size: 11.5px;
+            font-size: 12px;
             color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0;
+        }
+
+        /* Inspector Column */
+        .inspector-column {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .panel-card {
+            background: var(--surface-base);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            padding: 18px 20px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .panel-card-title {
+            font-size: 11.5px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 8px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Dropzone Component */
+        .upload-section {
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+        }
+
+        .dropzone {
+            width: 100%;
+            border: 1.5px dashed var(--border-strong);
+            border-radius: var(--radius-md);
+            padding: 18px 14px;
             text-align: center;
-            margin-top: 6px;
-            margin-bottom: 16px;
+            cursor: pointer;
+            transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.1s ease;
+            background: var(--surface-recessed);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
         }
 
-        .controls-panel {
-            background: var(--control-bg);
-            border: 1px solid var(--control-border);
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 20px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
+        .dropzone:hover,
+        .dropzone.dragover {
+            border-color: var(--accent-light);
+            background: var(--accent-subtle);
         }
 
-        @media (max-width: 540px) {
-            .controls-panel {
-                grid-template-columns: 1fr;
-            }
+        .dropzone-icon {
+            color: var(--accent-light);
+            margin-bottom: 4px;
         }
 
+        .dropzone-text {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 13.5px;
+        }
+
+        .dropzone-sub {
+            font-size: 11.5px;
+            color: var(--text-muted);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        /* Controls & Sliders */
         .control-group {
             display: flex;
             flex-direction: column;
@@ -210,24 +389,38 @@
         .control-label-row {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             font-size: 12.5px;
             color: var(--text-secondary);
             font-weight: 500;
         }
 
         .control-val {
-            color: #fff;
-            font-family: monospace;
+            color: #ffffff;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            background: var(--surface-recessed);
+            padding: 2px 7px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-subtle);
         }
 
         input[type="range"] {
             -webkit-appearance: none;
+            appearance: none;
             width: 100%;
             height: 6px;
-            background: #2a2e3d;
+            background: var(--surface-recessed);
+            border: 1px solid var(--border-subtle);
             border-radius: 3px;
             outline: none;
             margin: 4px 0;
+            cursor: pointer;
+        }
+
+        input[type="range"]:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
         }
 
         input[type="range"]::-webkit-slider-thumb {
@@ -235,233 +428,373 @@
             appearance: none;
             width: 16px;
             height: 16px;
-            border-radius: 50%;
-            background: var(--accent-primary);
-            cursor: pointer;
-            box-shadow: 0 0 8px var(--accent-glow);
-            transition: transform 0.1s, background-color 0.1s;
+            border-radius: 4px;
+            background: var(--accent);
+            border: 2px solid #ffffff;
+            cursor: grab;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+            transition: transform 0.1s ease, background-color 0.1s ease;
         }
 
-        input[type="range"]::-webkit-slider-thumb:hover {
+        input[type="range"]::-webkit-slider-thumb:hover:not(:disabled) {
             transform: scale(1.15);
             background: var(--accent-hover);
         }
 
+        input[type="range"]::-webkit-slider-thumb:active:not(:disabled) {
+            cursor: grabbing;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            background: var(--accent);
+            border: 2px solid #ffffff;
+            cursor: grab;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+            transition: transform 0.1s ease, background-color 0.1s ease;
+        }
+
+        /* Buttons */
         .btn-row {
-            grid-column: 1 / -1;
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
             gap: 8px;
-            justify-content: flex-end;
-            margin-top: 2px;
+            margin-top: 4px;
         }
 
         .btn-small {
-            background: #272b38;
-            border: 1px solid #3c4257;
+            background: var(--surface-overlay);
+            border: 1px solid var(--border-default);
             color: var(--text-primary);
             font-size: 12px;
-            padding: 5px 12px;
-            border-radius: 5px;
+            font-weight: 600;
+            padding: 7px 10px;
+            border-radius: 6px;
             cursor: pointer;
-            transition: background 0.15s, border-color 0.15s;
+            transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease, color 0.15s ease;
+            text-align: center;
         }
 
-        .btn-small:hover {
-            background: #33384a;
-            border-color: #555d78;
+        .btn-small:hover:not(:disabled) {
+            background: var(--surface-raised);
+            border-color: var(--border-strong);
+            color: #ffffff;
+        }
+
+        .btn-small:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+
+        .btn-small:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
         }
 
         .btn-small.btn-accent {
-            border-color: rgba(229, 57, 53, 0.4);
-            color: #ff8a80;
+            border-color: var(--accent-border);
+            color: var(--accent-light);
+            background: var(--accent-subtle);
         }
 
-        .btn-small.btn-accent:hover {
-            background: rgba(229, 57, 53, 0.15);
-            border-color: var(--accent-primary);
+        .btn-small.btn-accent:hover:not(:disabled) {
+            background: rgba(211, 47, 47, 0.25);
+            border-color: var(--accent);
+            color: #ffffff;
+        }
+
+        /* Action Dock & Download */
+        .action-dock {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         .download-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             width: 100%;
-            background: linear-gradient(135deg, var(--accent-primary) 0%, #b71c1c 100%);
-            color: white;
-            padding: 14px;
-            border: none;
-            border-radius: 7px;
-            font-size: 15.5px;
+            background: var(--accent);
+            color: #ffffff;
+            padding: 13px 18px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: var(--radius-md);
+            font-size: 14.5px;
             font-weight: 700;
             letter-spacing: 0.5px;
             cursor: pointer;
-            transition: transform 0.15s, box-shadow 0.2s, background 0.2s;
-            box-shadow: 0 4px 16px rgba(229, 57, 53, 0.35);
+            transition: transform 0.12s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+            box-shadow: 0 4px 14px rgba(211, 47, 47, 0.35);
         }
 
         .download-btn:hover:not(:disabled) {
-            background: linear-gradient(135deg, var(--accent-hover) 0%, #c62828 100%);
-            box-shadow: 0 6px 22px rgba(229, 57, 53, 0.5);
+            background: var(--accent-hover);
+            box-shadow: 0 6px 20px rgba(211, 47, 47, 0.5);
             transform: translateY(-1px);
         }
 
         .download-btn:active:not(:disabled) {
             transform: translateY(1px);
+            box-shadow: 0 2px 8px rgba(211, 47, 47, 0.3);
         }
 
         .download-btn:disabled {
-            background: #252830;
-            color: #636b78;
+            background: var(--surface-overlay);
+            color: var(--text-disabled);
+            border-color: transparent;
             box-shadow: none;
             cursor: not-allowed;
+            opacity: 0.6;
         }
 
         .footer {
-            margin-top: 18px;
+            margin-top: 24px;
             text-align: center;
-            font-size: 11px;
-            color: #555a64;
-            letter-spacing: 0.5px;
+            font-size: 11.5px;
+            color: var(--text-muted);
+            letter-spacing: 0.4px;
         }
 
-        .mode-selector {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 20px;
+        @media (max-width: 640px) {
+            body {
+                padding: 12px 10px 32px;
+            }
+
+            header.app-header {
+                padding: 12px 14px;
+                gap: 12px;
+            }
+
+            .brand-title-row h1 {
+                font-size: 18px;
+            }
+
+            .header-actions {
+                width: 100%;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .mode-selector {
+                width: 100%;
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .mode-label {
+                padding: 8px 4px;
+                font-size: 12px;
+                text-align: center;
+            }
+
+            .status-msg {
+                width: 100%;
+                justify-content: center;
+                text-align: center;
+                font-size: 11.5px;
+            }
+
+            .canvas-inner {
+                padding: 16px 10px;
+                min-height: 240px;
+            }
+
+            .panel-card {
+                padding: 14px 12px;
+                gap: 12px;
+            }
+
+            input[type="range"] {
+                height: 8px;
+                margin: 6px 0;
+            }
+
+            input[type="range"]::-webkit-slider-thumb {
+                width: 22px;
+                height: 22px;
+            }
+
+            input[type="range"]::-moz-range-thumb {
+                width: 22px;
+                height: 22px;
+            }
+
+            .btn-small {
+                min-height: 40px;
+                padding: 9px 8px;
+                font-size: 12.5px;
+            }
+
+            .download-btn {
+                min-height: 48px;
+                font-size: 15px;
+            }
         }
 
-        .mode-radio {
-            display: none;
-        }
+        @media (prefers-reduced-motion: reduce) {
 
-        .mode-label {
-            padding: 10px 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--card-border);
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s;
-            color: var(--text-secondary);
-        }
-
-        .mode-radio:checked + .mode-label {
-            background: rgba(229, 57, 53, 0.15);
-            border-color: var(--accent-primary);
-            color: #ff8a80;
-            box-shadow: 0 0 12px rgba(229, 57, 53, 0.2);
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <div class="container">
-        <header>
-            <h1>TFR 烈焰升騰 <span class="badge">OIOD</span></h1>
-            <p class="subtitle">事件圖片生成器 • 支援縮放、拖曳、色差與遮罩合成</p>
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="brand-block">
+                <div class="brand-title-row">
+                    <h1>烈焰升騰：同島一命</span></h1>
+                </div>
+                <p class="subtitle">事件圖片生成器 • 支援縮放、拖曳、色差與遮罩合成</p>
+            </div>
+
+            <div class="header-actions">
+                <!-- 模式切換器 -->
+                <div class="mode-selector">
+                    <input type="radio" id="modeEvent" name="imageMode" value="event" class="mode-radio" checked>
+                    <label for="modeEvent" class="mode-label">事件圖片</label>
+
+                    <input type="radio" id="modeLoading" name="imageMode" value="loading" class="mode-radio">
+                    <label for="modeLoading" class="mode-label">載入畫面</label>
+
+                    <input type="radio" id="modeBanner" name="imageMode" value="banner" class="mode-radio">
+                    <label for="modeBanner" class="mode-label">橫幅</label>
+                </div>
+
+                <div class="status-msg" id="overlayStatus">正在檢查系統遮罩...</div>
+            </div>
         </header>
-        
-        <!-- 模式切換器 -->
-        <div class="mode-selector">
-            <input type="radio" id="modeEvent" name="imageMode" value="event" class="mode-radio" checked>
-            <label for="modeEvent" class="mode-label">事件圖片模式</label>
 
-            <input type="radio" id="modeLoading" name="imageMode" value="loading" class="mode-radio">
-            <label for="modeLoading" class="mode-label">載入畫面 (Loading Screen)</label>
-
-            <input type="radio" id="modeBanner" name="imageMode" value="banner" class="mode-radio">
-            <label for="modeBanner" class="mode-label">橫幅 (Banner)</label>
-        </div>
-
-        <div class="status-msg" id="overlayStatus">正在檢查系統遮罩...</div>
-
-        <div class="upload-section">
-            <label for="imageInput" class="dropzone" id="dropZone">
-                <div class="dropzone-text" id="uploadPrompt">點擊或拖曳原圖至此處</div>
-                <div class="dropzone-sub" id="imageName">支援 JPG, PNG, WEBP, DDS 等格式</div>
-                <input type="file" id="imageInput" accept="image/*" disabled>
-            </label>
-        </div>
-
-        <div class="canvas-card">
-            <div class="canvas-inner">
-                <canvas id="resultCanvas" width="500" height="250"></canvas>
-            </div>
-        </div>
-        <div class="hint-text" id="canvasHint">💡 提示：在畫布上可直接用滑鼠滾輪縮放、按住滑鼠左鍵拖曳調整位置</div>
-
-        <div class="controls-panel">
-            <div class="control-group">
-                <div class="control-label-row">
-                    <span>圖片縮放 (Zoom)</span>
-                    <span class="control-val" id="scaleVal">100%</span>
+        <main class="workbench-grid">
+            <!-- 左欄：畫布工作台 -->
+            <section class="stage-column">
+                <div class="canvas-card">
+                    <div class="canvas-card-header">
+                        <span>即時預覽畫布</span>
+                        <span>CANVAS STAGE</span>
+                    </div>
+                    <div class="canvas-inner">
+                        <canvas id="resultCanvas" width="500" height="250"></canvas>
+                    </div>
                 </div>
-                <input type="range" id="scaleSlider" min="20" max="300" value="100" disabled>
-            </div>
 
-            <div class="control-group">
-                <div class="control-label-row">
-                    <span>色差位移 (Aberration)</span>
-                    <span class="control-val" id="aberrationVal">3px</span>
+                <div class="stage-meta-bar">
+                    <div class="hint-text" id="canvasHint">💡 提示：在畫布上可直接用滑鼠滾輪縮放、按住滑鼠左鍵拖曳調整位置</div>
                 </div>
-                <input type="range" id="aberrationSlider" min="0" max="15" value="3">
-            </div>
+            </section>
 
-            <div class="control-group">
-                <div class="control-label-row">
-                    <span>亮度 (Brightness)</span>
-                    <span class="control-val" id="brightnessVal">100%</span>
+            <!-- 右欄：控制檢視器 -->
+            <aside class="inspector-column">
+                <!-- 檔案來源 -->
+                <div class="panel-card">
+                    <h2 class="panel-card-title">圖片來源 (Source)</h2>
+                    <div class="upload-section">
+                        <label for="imageInput" class="dropzone" id="dropZone">
+                            <svg class="dropzone-icon" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <div class="dropzone-text" id="uploadPrompt">點擊或拖曳原圖至此處</div>
+                            <div class="dropzone-sub" id="imageName">支援 JPG, PNG, WEBP, DDS 等格式</div>
+                            <input type="file" id="imageInput" accept="image/*" disabled>
+                        </label>
+                    </div>
                 </div>
-                <input type="range" id="brightnessSlider" min="0" max="200" value="100">
-            </div>
 
-            <div class="control-group">
-                <div class="control-label-row">
-                    <span>風狀效果 (Wind)</span>
-                    <span class="control-val" id="windVal">0</span>
+                <!-- 變形與對齊 -->
+                <div class="panel-card">
+                    <h2 class="panel-card-title">位移與縮放 (Transform)</h2>
+                    <div class="control-group">
+                        <div class="control-label-row">
+                            <span>圖片縮放 (Zoom)</span>
+                            <span class="control-val" id="scaleVal">100%</span>
+                        </div>
+                        <input type="range" id="scaleSlider" min="20" max="300" value="100" disabled>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label-row">
+                            <span>水平位移 (X)</span>
+                            <span class="control-val" id="panXVal">0px</span>
+                        </div>
+                        <input type="range" id="panXSlider" min="-300" max="300" value="0" disabled>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label-row">
+                            <span>垂直位移 (Y)</span>
+                            <span class="control-val" id="panYVal">0px</span>
+                        </div>
+                        <input type="range" id="panYSlider" min="-200" max="200" value="0" disabled>
+                    </div>
+
+                    <div class="btn-row">
+                        <button type="button" class="btn-small" id="fitCoverBtn" disabled>適應填滿</button>
+                        <button type="button" class="btn-small" id="fitContainBtn" disabled>適應完整</button>
+                        <button type="button" class="btn-small" id="resetPositionBtn" disabled>重置位置</button>
+                        <button type="button" class="btn-small btn-accent" id="resetAllBtn" disabled>全部重置</button>
+                    </div>
                 </div>
-                <input type="range" id="windSlider" min="0" max="60" value="0">
-            </div>
 
-            <div class="control-group">
-                <div class="control-label-row">
-                    <span>水平位移 (X)</span>
-                    <span class="control-val" id="panXVal">0px</span>
+                <!-- 效果與濾鏡 -->
+                <div class="panel-card">
+                    <h2 class="panel-card-title">視覺濾鏡 (Shaders & Effects)</h2>
+                    <div class="control-group">
+                        <div class="control-label-row">
+                            <span>色差位移 (Aberration)</span>
+                            <span class="control-val" id="aberrationVal">3px</span>
+                        </div>
+                        <input type="range" id="aberrationSlider" min="0" max="15" value="3">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label-row">
+                            <span>亮度 (Brightness)</span>
+                            <span class="control-val" id="brightnessVal">100%</span>
+                        </div>
+                        <input type="range" id="brightnessSlider" min="0" max="200" value="100">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label-row">
+                            <span>風狀效果 (Wind)</span>
+                            <span class="control-val" id="windVal">0</span>
+                        </div>
+                        <input type="range" id="windSlider" min="0" max="60" value="0">
+                    </div>
                 </div>
-                <input type="range" id="panXSlider" min="-300" max="300" value="0" disabled>
-            </div>
 
-            <div class="control-group">
-                <div class="control-label-row">
-                    <span>垂直位移 (Y)</span>
-                    <span class="control-val" id="panYVal">0px</span>
+                <!-- 匯出動作區 -->
+                <div class="action-dock">
+                    <button id="downloadBtn" class="download-btn" disabled>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        下載圖片 (PNG)
+                    </button>
                 </div>
-                <input type="range" id="panYSlider" min="-200" max="200" value="0" disabled>
-            </div>
+            </aside>
+        </main>
 
-            <div class="btn-row">
-                <button type="button" class="btn-small" id="fitCoverBtn" disabled>適應填滿</button>
-                <button type="button" class="btn-small" id="fitContainBtn" disabled>適應完整</button>
-                <button type="button" class="btn-small" id="resetPositionBtn" disabled>重置位置</button>
-                <button type="button" class="btn-small btn-accent" id="resetAllBtn" disabled>全部重置</button>
-            </div>
-        </div>
-
-        <button id="downloadBtn" class="download-btn" disabled>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            下載圖片 (PNG)
-        </button>
-
-        <div class="footer">The Fire Rises: One Island, One Determination Modding Tool</div>
+        <footer class="footer">The Fire Rises: One Island, One Determination Modding Tool</footer>
     </div>
 
     <script>
@@ -473,6 +806,7 @@
         const ctx = resultCanvas.getContext('2d', { willReadFrequently: true });
         const downloadBtn = document.getElementById('downloadBtn');
         const overlayStatus = document.getElementById('overlayStatus');
+        const canvasFormatInfo = document.getElementById('canvasFormatInfo');
 
         const scaleSlider = document.getElementById('scaleSlider');
         const scaleVal = document.getElementById('scaleVal');
@@ -506,9 +840,9 @@
         };
 
         // Image transform state
-        let baseScale = 1;      
-        let currentZoom = 1;    
-        let panX = 0;           
+        let baseScale = 1;
+        let currentZoom = 1;
+        let panX = 0;
         let panY = 0;
         let aberrationOffset = 3;
         let currentBrightness = 100;
@@ -522,13 +856,13 @@
 
         // 監聽模式切換按鈕
         document.querySelectorAll('input[name="imageMode"]').forEach(radio => {
-            radio.addEventListener('change', function() {
+            radio.addEventListener('change', function () {
                 overlayLoaded = false;
                 overlayStatus.textContent = '正在載入新遮罩...';
                 overlayStatus.style.borderColor = 'var(--card-border)';
                 overlayStatus.style.background = 'rgba(255, 255, 255, 0.03)';
                 overlayStatus.style.color = 'var(--text-secondary)';
-                
+
                 // 根據選擇切換圖片來源
                 overlayImg.src = overlayPaths[this.value];
             });
@@ -547,6 +881,9 @@
 
             resultCanvas.width = overlayImg.width;
             resultCanvas.height = overlayImg.height;
+            if (canvasFormatInfo) {
+                canvasFormatInfo.textContent = overlayImg.width + ' × ' + overlayImg.height + ' PX';
+            }
 
             // Draw initial placeholder
             drawPlaceholder();
@@ -869,10 +1206,10 @@
                 const dst = brightData.data;
                 const threshold = 100;
                 for (let i = 0; i < src.length; i += 4) {
-                    const lum = (src[i] * 0.299 + src[i+1] * 0.587 + src[i+2] * 0.114);
+                    const lum = (src[i] * 0.299 + src[i + 1] * 0.587 + src[i + 2] * 0.114);
                     if (lum > threshold) {
                         const factor = (lum - threshold) / (255 - threshold); // 0..1 ramp
-                        dst[i]     = src[i];
+                        dst[i] = src[i];
                         dst[i + 1] = src[i + 1];
                         dst[i + 2] = src[i + 2];
                         dst[i + 3] = Math.round(255 * factor);
@@ -936,7 +1273,7 @@
                 ctx.globalCompositeOperation = 'soft-light';
                 ctx.globalAlpha = 0.75;
                 ctx.drawImage(overlayImg, 0, 0, targetW, targetH);
-                
+
                 // Draw the solid outer frame/bezel on top
                 ctx.globalCompositeOperation = 'source-over';
                 ctx.globalAlpha = 1.0;
@@ -948,13 +1285,13 @@
                 ctx.globalAlpha = 1.0;
                 ctx.drawImage(overlayImg, 0, 0, targetW, targetH);
             }
-            
+
             ctx.restore();
 
             downloadBtn.disabled = false;
         }
 
-                downloadBtn.addEventListener('click', async function() {
+        downloadBtn.addEventListener('click', async function () {
             if (downloadBtn.disabled) return;
 
             const dataUrl = resultCanvas.toDataURL('image/png');
